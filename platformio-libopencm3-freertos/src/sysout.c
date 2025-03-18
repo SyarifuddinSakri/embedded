@@ -41,3 +41,7 @@ void enable_sysout(void){
 
     usart_enable(USART1);
 }
+
+void uart_putchar(char ch){
+    usart_send_blocking(USART1, ch);
+}

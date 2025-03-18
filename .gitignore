@@ -7,3 +7,4 @@ bin/
 generated.*.ld
 libopencm3/
 .cache/
+import/FreeRTOS-Kernel/
