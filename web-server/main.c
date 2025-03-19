@@ -10,11 +10,11 @@
 #include "spi_w5500.h"
 #include "wizchip_conf.h"
 #include "log.h"
+#include "web_server.h"
 
 void task1(void* args __attribute((unused)));
 void task2(void* args __attribute((unused)));
 void uart_setup(void);
-void task_uart(void* args __attribute((unused)));
 void spi1_setup(void);
 void gpio_setup(void);
 void clock_setup(void);
@@ -35,7 +35,7 @@ int main(void) {
 
 	xTaskCreate(task1, "LED1", 128, NULL, 1, NULL);
 	xTaskCreate(task2, "LED2", 128, NULL, 1, NULL);
-	xTaskCreate(task_uart, "UART", 128, NULL, 1, NULL);
+	xTaskCreate(http_server_task, "HTTP", 128, NULL, 1, NULL);
 
 	vTaskStartScheduler();
 
@@ -76,12 +76,7 @@ void task2(void* args __attribute((unused))){
 	}
 
 }
-void task_uart(void* args __attribute((unused))) {
-    for (;;) {
-        uart_send_string("Hello from STM32!\r\n");
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
+
 void uart_setup(void) {
     // Configure TX (PA9) as alternate function push-pull
     gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,

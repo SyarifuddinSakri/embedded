@@ -50,7 +50,6 @@ void wizchip_writeburst(uint8_t* pBuf, uint16_t len){
 }
 
 void W5500Init(void){
-    uart_send_string("Initializing w5500\r\n");
     uint8_t memsize[2][8] = {{2,2,2,2,2,2,2,2},{2,2,2,2,2,2,2,2}};
 
     spi_set_nss_high(SPI1);

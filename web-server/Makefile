@@ -16,7 +16,7 @@ W5500_CFILES = $(wildcard ../import/ioLibrary_Driver/Ethernet/*.c) \
 
 SHARED_DIR = ../import $(RTOS_DIR) $(W5500_DIR)
 CFILES = main.c log.c
-CFILES += $(RTOS_CFILES) $(W5500_CFILES) ./spi_w5500.c
+CFILES += $(RTOS_CFILES) $(W5500_CFILES) ./spi_w5500.c ./web_server.c
 
 # TODO - you will need to edit these two lines!
 DEVICE=stm32f103c8
