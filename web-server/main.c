@@ -2,6 +2,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/spi.h>
+#include <stdint.h>
 #include "FreeRTOS.h"
 #include "libopencm3/stm32/f1/gpio.h"
 #include "libopencm3/stm32/f1/rcc.h"
@@ -11,6 +12,8 @@
 #include "wizchip_conf.h"
 #include "log.h"
 #include "web_server.h"
+
+TaskHandle_t httpServerHandle = NULL; // Task handle
 
 void task1(void* args __attribute((unused)));
 void task2(void* args __attribute((unused)));
@@ -33,30 +36,21 @@ int main(void) {
 	W5500Init();
 	wizchip_setnetinfo(&default_net_info);
 
-	xTaskCreate(task1, "LED1", 128, NULL, 1, NULL);
-	xTaskCreate(task2, "LED2", 128, NULL, 1, NULL);
-	xTaskCreate(http_server_task, "HTTP", 128, NULL, 1, NULL);
+	xTaskCreate(task1, "LED1", 32, NULL, 1, NULL);
+	xTaskCreate(task2, "LED2", 32, NULL, 1, NULL);
+	xTaskCreate(http_server_task, "HTTP", 1024, NULL, 1, &httpServerHandle);
 
 	vTaskStartScheduler();
 
 }
 
-void clock_setup(void){
-	rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
-	rcc_periph_clock_enable(RCC_GPIOC);
-	// Enable clock for GPIOA (USART1 and SPI1)
-	rcc_periph_clock_enable(RCC_GPIOA);
-	rcc_periph_clock_enable(RCC_USART1);
-	rcc_periph_clock_enable(RCC_SPI1);
-
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName){
+				my_printf("Stack overflow in task %s\n", pcTaskName);
+				uint32_t remain = uxTaskGetStackHighWaterMark(httpServerHandle);
+				my_printf("ramaining stack in http %d\n", remain);
+				while(1); //Halt or reset
 }
 
-void gpio_setup(void){
-	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO13 | GPIO14);
-	//Reset pin of the W5500
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO4);
-	gpio_set(GPIOA, GPIO4);
-}
 
 void task1(void* args __attribute((unused))){
 
@@ -75,6 +69,23 @@ void task2(void* args __attribute((unused))){
 		vTaskDelay(pdMS_TO_TICKS(1500));
 	}
 
+}
+
+void clock_setup(void){
+	rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+	rcc_periph_clock_enable(RCC_GPIOC);
+	// Enable clock for GPIOA (USART1 and SPI1)
+	rcc_periph_clock_enable(RCC_GPIOA);
+	rcc_periph_clock_enable(RCC_USART1);
+	rcc_periph_clock_enable(RCC_SPI1);
+
+}
+
+void gpio_setup(void){
+	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO13 | GPIO14);
+	//Reset pin of the W5500
+	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO4);
+	gpio_set(GPIOA, GPIO4);
 }
 
 void uart_setup(void) {
