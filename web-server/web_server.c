@@ -13,12 +13,12 @@
 #define index_page "<!DOCTYPE html>"\
   "<html>"\
     "<head>"\
-      "<title>W5500-STM32 Web Server</title>"\
+      "<title>SY webserver</title>"\
       "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>"\
     "</head>"\
     "<body>"\
-      "<h1>STM32 - W5500</h1>"\
-      "<p>Control the light via Ethernet</p>"\
+      "<h1>Makan nasi bro</h1>"\
+      "<p>Web server active</p>"\
     "</body>"\
   "</html>"
 
@@ -33,10 +33,15 @@ void http_server_task(void* args __attribute((unused))){
     reg_httpServer_webContent((uint8_t *)"index.html", (uint8_t *)index_page);
 
     for(;;){
-        for (int i = 0; i < sizeof(socknumlist)/sizeof(socknumlist[0]); i++) {
-            httpServer_run(socknumlist[i]);
+        for (uint8_t i = 0; i < sizeof(socknumlist)/sizeof(socknumlist[0]); i++) {
+                if(getSn_SR(socknumlist[i]) != SOCK_CLOSED) {
+                httpServer_run(socknumlist[i]);
+                }else{
+                socket(socknumlist[i], Sn_MR_TCP, PORT, 0);
+                listen(socknumlist[i]);
+            }
         }
-        vTaskDelay(10);
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 

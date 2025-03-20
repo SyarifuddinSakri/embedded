@@ -35,6 +35,7 @@ int main(void) {
 	spi1_setup();
 	W5500Init();
 	wizchip_setnetinfo(&default_net_info);
+	wizchip_setnetmode(NM_FORCEARP | NM_WAKEONLAN);
 
 	xTaskCreate(task1, "LED1", 32, NULL, 1, NULL);
 	xTaskCreate(task2, "LED2", 32, NULL, 1, NULL);
