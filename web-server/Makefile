@@ -8,13 +8,13 @@ RTOS_CFILES += $(wildcard ../import/FreeRTOS-Kernel/*.c) \
 					$(wildcard ../import/FreeRTOS-Kernel/portable/GCC/ARM_CM3/*.c) \
 					../import/FreeRTOS-Kernel/portable/MemMang/heap_4.c
 
-W5500_DIR = ../import/ioLibrary_Driver/Ethernet \
-						../import/ioLibrary_Driver/Internet/httpServer 
+W5500_DIR = ../import/ioLibrary_Driver/Ethernet 
 
-W5500_CFILES = $(wildcard ../import/ioLibrary_Driver/Ethernet/*.c) \
-							 $(wildcard ../import/ioLibrary_Driver/Internet/httpServer/*.c)
+W5500_CFILES = $(wildcard ../import/ioLibrary_Driver/Ethernet/*.c)
 
-SHARED_DIR = ../import $(RTOS_DIR) $(W5500_DIR)
+SHARED_DIR = ../import $(RTOS_DIR) $(W5500_DIR) \
+						 /usr/lib/gcc/arm-none-eabi/13.2.1/include \
+						 /usr/include
 CFILES = main.c log.c
 CFILES += $(RTOS_CFILES) $(W5500_CFILES) ./spi_w5500.c ./web_server.c
 

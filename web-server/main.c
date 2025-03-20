@@ -4,8 +4,6 @@
 #include <libopencm3/stm32/spi.h>
 #include <stdint.h>
 #include "FreeRTOS.h"
-#include "libopencm3/stm32/f1/gpio.h"
-#include "libopencm3/stm32/f1/rcc.h"
 #include "projdefs.h"
 #include "task.h"
 #include "spi_w5500.h"
@@ -45,7 +43,7 @@ int main(void) {
 
 }
 
-void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName){
+void vApplicationStackOverflowHook(TaskHandle_t xTask __attribute((unused)), char *pcTaskName){
 				my_printf("Stack overflow in task %s\n", pcTaskName);
 				uint32_t remain = uxTaskGetStackHighWaterMark(httpServerHandle);
 				my_printf("ramaining stack in http %d\n", remain);
@@ -66,7 +64,7 @@ void task2(void* args __attribute((unused))){
 
 	for(;;){
 		gpio_toggle(GPIOC, GPIO14);
-        uart_send_string("Blink from pin 14\r\n");
+        /*uart_send_string("Blink from pin 14\r\n");*/
 		vTaskDelay(pdMS_TO_TICKS(1500));
 	}
 

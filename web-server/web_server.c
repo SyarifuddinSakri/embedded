@@ -1,54 +1,80 @@
+
 #include "web_server.h"
-#include "httpServer.h"
 #include "FreeRTOS.h"
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/iwdg.h>
+#include <stdint.h>
+#include <string.h>
 #include "task.h"
 #include "socket.h"
 #include "log.h"
+#include "w5500.h"
 
 #define PORT 80
-#define BUFFER_SIZE 256
-#define MAX_HTTPSOCK 6
-#define index_page "<!DOCTYPE html>"\
-  "<html>"\
-    "<head>"\
-      "<title>SY webserver</title>"\
-      "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>"\
-    "</head>"\
-    "<body>"\
-      "<h1>Makan nasi bro</h1>"\
-      "<p>Web server active</p>"\
-    "</body>"\
-  "</html>"
+#define BUFFER_SIZE 512
+#define SOCKET_NUMBER 0
+
+const char http_404[] =
+  "HTTP/1.1 404 Not Found\r\n"
+  "Content-Type: text/html\r\n"
+  "Connection: close\r\n"
+  "\r\n"
+  "<html><body><h1>404 Not Found</h1></body></html>";
+
+const char http_index[] =
+  "HTTP/1.1 200 OK\r\n"
+  "Content-Type: text/html\r\n"
+  "Connection: close\r\n"
+  "\r\n"
+  "<!DOCTYPE html>"
+  "<html>"
+  "<head><title>W5500 Web Server</title></head>"
+  "<body>"
+  "<h1>Hello from W5500!</h1>"
+  "<p>This is a simple embedded web server.</p>"
+  "</body>"
+  "</html>";
 
 uint8_t rx_buffer[BUFFER_SIZE];
-uint8_t tx_buffer[BUFFER_SIZE];
-uint8_t socknumlist[MAX_HTTPSOCK] = {0,1,2,3,4,5};
-uint8_t stat;
 
-void http_server_task(void* args __attribute((unused))){
-    httpServer_init(tx_buffer, rx_buffer, MAX_HTTPSOCK, socknumlist);
-    reg_httpServer_cbfunc(mcu_reset, wdt_reset);
-    reg_httpServer_webContent((uint8_t *)"index.html", (uint8_t *)index_page);
+void http_server_task(void* args __attribute((unused))) {
+    int32_t data_size;
 
-    for(;;){
-        for (uint8_t i = 0; i < sizeof(socknumlist)/sizeof(socknumlist[0]); i++) {
-                if(getSn_SR(socknumlist[i]) != SOCK_CLOSED) {
-                httpServer_run(socknumlist[i]);
-                }else{
-                socket(socknumlist[i], Sn_MR_TCP, PORT, 0);
-                listen(socknumlist[i]);
-            }
+    for (;;) {
+        switch (getSn_SR(SOCKET_NUMBER)) {
+            case SOCK_CLOSED:
+                socket(SOCKET_NUMBER, Sn_MR_TCP, PORT, 0);
+                listen(SOCKET_NUMBER);
+                break;
+
+            case SOCK_ESTABLISHED:
+                if (getSn_IR(SOCKET_NUMBER) & Sn_IR_CON) {
+                    setSn_IR(SOCKET_NUMBER, Sn_IR_CON);  // Clear connection flag
+                }
+
+                // Read HTTP request
+                data_size = recv(SOCKET_NUMBER, rx_buffer, BUFFER_SIZE - 1);
+                if (data_size > 0) {
+                    rx_buffer[data_size] = '\0';  // Null-terminate for safety
+                    my_printf("Received: %s\r\n", rx_buffer);
+
+                    // Simple request handling
+                    if (strncmp((char*)rx_buffer, "GET / ", 6) == 0 || strncmp((char*)rx_buffer, "GET /index.html", 15) == 0) {
+                        send(SOCKET_NUMBER, (uint8_t*)http_index, sizeof(http_index) - 1);
+                    } else {
+                        send(SOCKET_NUMBER, (uint8_t*)http_404, sizeof(http_404) - 1);
+                    }
+                }
+
+                // Close connection after sending response
+                disconnect(SOCKET_NUMBER);
+                break;
+
+            case SOCK_CLOSE_WAIT:
+                disconnect(SOCKET_NUMBER);
+                break;
         }
+
         vTaskDelay(pdMS_TO_TICKS(10));
     }
-}
-
-void mcu_reset(void){
-    scb_reset_system();
-}
-
-void wdt_reset(void){
-    iwdg_reset();
 }
