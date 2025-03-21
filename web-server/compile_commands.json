@@ -25,6 +25,7 @@
       "-I../import/FreeRTOS-Kernel/include",
       "-I../import/FreeRTOS-Kernel/portable/GCC/ARM_CM3",
       "-I../import/ioLibrary_Driver/Ethernet",
+      "-I../import/fatfs/source",
       "-I/usr/lib/gcc/arm-none-eabi/13.2.1/include",
       "-I/usr/include",
       "-I.",
@@ -34,6 +35,7 @@
       "-I../import/FreeRTOS-Kernel/include",
       "-I../import/FreeRTOS-Kernel/portable/GCC/ARM_CM3",
       "-I../import/ioLibrary_Driver/Ethernet",
+      "-I../import/fatfs/source",
       "-I/usr/lib/gcc/arm-none-eabi/13.2.1/include",
       "-I/usr/include",
       "-I.",
@@ -46,9 +48,9 @@
       "bin/main.o",
       "main.c"
     ],
-    "directory": "/home/sy/Code/C/libopencm3-template/web-server",
-    "file": "/home/sy/Code/C/libopencm3-template/web-server/main.c",
-    "output": "/home/sy/Code/C/libopencm3-template/web-server/bin/main.o"
+    "directory": "/home/sy/C/libopencm3-template/web-server",
+    "file": "/home/sy/C/libopencm3-template/web-server/main.c",
+    "output": "/home/sy/C/libopencm3-template/web-server/bin/main.o"
   },
   {
     "arguments": [
@@ -76,6 +78,7 @@
       "-I../import/FreeRTOS-Kernel/include",
       "-I../import/FreeRTOS-Kernel/portable/GCC/ARM_CM3",
       "-I../import/ioLibrary_Driver/Ethernet",
+      "-I../import/fatfs/source",
       "-I/usr/lib/gcc/arm-none-eabi/13.2.1/include",
       "-I/usr/include",
       "-I.",
@@ -85,6 +88,7 @@
       "-I../import/FreeRTOS-Kernel/include",
       "-I../import/FreeRTOS-Kernel/portable/GCC/ARM_CM3",
       "-I../import/ioLibrary_Driver/Ethernet",
+      "-I../import/fatfs/source",
       "-I/usr/lib/gcc/arm-none-eabi/13.2.1/include",
       "-I/usr/include",
       "-I.",
@@ -97,9 +101,9 @@
       "bin/log.o",
       "log.c"
     ],
-    "directory": "/home/sy/Code/C/libopencm3-template/web-server",
-    "file": "/home/sy/Code/C/libopencm3-template/web-server/log.c",
-    "output": "/home/sy/Code/C/libopencm3-template/web-server/bin/log.o"
+    "directory": "/home/sy/C/libopencm3-template/web-server",
+    "file": "/home/sy/C/libopencm3-template/web-server/log.c",
+    "output": "/home/sy/C/libopencm3-template/web-server/bin/log.o"
   },
   {
     "arguments": [
@@ -127,6 +131,7 @@
       "-I../import/FreeRTOS-Kernel/include",
       "-I../import/FreeRTOS-Kernel/portable/GCC/ARM_CM3",
       "-I../import/ioLibrary_Driver/Ethernet",
+      "-I../import/fatfs/source",
       "-I/usr/lib/gcc/arm-none-eabi/13.2.1/include",
       "-I/usr/include",
       "-I.",
@@ -136,6 +141,7 @@
       "-I../import/FreeRTOS-Kernel/include",
       "-I../import/FreeRTOS-Kernel/portable/GCC/ARM_CM3",
       "-I../import/ioLibrary_Driver/Ethernet",
+      "-I../import/fatfs/source",
       "-I/usr/lib/gcc/arm-none-eabi/13.2.1/include",
       "-I/usr/include",
       "-I.",
@@ -148,9 +154,9 @@
       "bin/./spi_w5500.o",
       "spi_w5500.c"
     ],
-    "directory": "/home/sy/Code/C/libopencm3-template/web-server",
-    "file": "/home/sy/Code/C/libopencm3-template/web-server/spi_w5500.c",
-    "output": "/home/sy/Code/C/libopencm3-template/web-server/bin/spi_w5500.o"
+    "directory": "/home/sy/C/libopencm3-template/web-server",
+    "file": "/home/sy/C/libopencm3-template/web-server/spi_w5500.c",
+    "output": "/home/sy/C/libopencm3-template/web-server/bin/spi_w5500.o"
   },
   {
     "arguments": [
@@ -178,6 +184,7 @@
       "-I../import/FreeRTOS-Kernel/include",
       "-I../import/FreeRTOS-Kernel/portable/GCC/ARM_CM3",
       "-I../import/ioLibrary_Driver/Ethernet",
+      "-I../import/fatfs/source",
       "-I/usr/lib/gcc/arm-none-eabi/13.2.1/include",
       "-I/usr/include",
       "-I.",
@@ -187,6 +194,7 @@
       "-I../import/FreeRTOS-Kernel/include",
       "-I../import/FreeRTOS-Kernel/portable/GCC/ARM_CM3",
       "-I../import/ioLibrary_Driver/Ethernet",
+      "-I../import/fatfs/source",
       "-I/usr/lib/gcc/arm-none-eabi/13.2.1/include",
       "-I/usr/include",
       "-I.",
@@ -199,8 +207,8 @@
       "bin/./web_server.o",
       "web_server.c"
     ],
-    "directory": "/home/sy/Code/C/libopencm3-template/web-server",
-    "file": "/home/sy/Code/C/libopencm3-template/web-server/web_server.c",
-    "output": "/home/sy/Code/C/libopencm3-template/web-server/bin/web_server.o"
+    "directory": "/home/sy/C/libopencm3-template/web-server",
+    "file": "/home/sy/C/libopencm3-template/web-server/web_server.c",
+    "output": "/home/sy/C/libopencm3-template/web-server/bin/web_server.o"
   }
 ]

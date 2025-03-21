@@ -28,9 +28,9 @@ const char http_index[] =
   "\r\n"
   "<!DOCTYPE html>"
   "<html>"
-  "<head><title>W5500 Web Server</title></head>"
+  "<head><title>Henlooo Uinaaaa</title></head>"
   "<body>"
-  "<h1>Hello from W5500!</h1>"
+  "<h1>Makan nasi bro</h1>"
   "<p>This is a simple embedded web server.</p>"
   "</body>"
   "</html>";
