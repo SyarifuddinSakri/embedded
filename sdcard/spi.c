@@ -3,7 +3,6 @@
 #include <libopencm3/stm32/rcc.h>
 #include <stdint.h>
 #include "spi.h"
-#include "libopencm3/stm32/f1/gpio.h"
 #include "log.h"
 
 uint8_t spi_sd_transfer(uint8_t data){

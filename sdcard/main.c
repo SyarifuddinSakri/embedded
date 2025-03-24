@@ -4,6 +4,7 @@
 #include <libopencm3/stm32/usart.h>
 #include <stdint.h>
 #include "ff.h"
+#include "libopencm3/stm32/f1/gpio.h"
 #include "log.h"
 #include "spi.h"
 
@@ -32,6 +33,13 @@ FATFS FatFs;
 	}
 
 	my_printf("End of prog\r\n");
+
+	while (1) {
+		for (int i=0; i<1000000; i++) {
+			__asm__("nop");
+		}
+		gpio_toggle(GPIOC, GPIO13);
+	}
 
 	return 0;
 }
@@ -69,4 +77,5 @@ void uart_setup(void) {
 
 void gpio_init(void){
 	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO4);
+	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO13 | GPIO14);
 }

@@ -1,1 +1,7 @@
-[]
+{
+	"arguments": [
+		"/usr/bin/arm-none-eabi-gcc",
+		"I../libopencm3/include",
+		"I../import"
+	]
+}
