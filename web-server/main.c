@@ -42,7 +42,7 @@ int main(void) {
 	app_init();
 	xTaskCreate(task1, "LED1", 128, NULL, 1, NULL);
 	xTaskCreate(task2, "LED2", 128, NULL, 1, NULL);
-	/*xTaskCreate(http_server_task, "HTTP", 1024, NULL, 1, &httpServerHandle);*/
+	xTaskCreate(http_server_task, "HTTP", 1024, NULL, 1, &httpServerHandle);
 	/*xTaskCreate(websocket_server, "WS", 1024, NULL, 1, NULL);*/
 
 	vTaskStartScheduler();
