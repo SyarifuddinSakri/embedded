@@ -5,51 +5,47 @@
 #include "spi.h"
 #include "log.h"
 
-uint8_t spi_sd_transfer(uint8_t data){
+uint8_t spi_sd_transfer(uint32_t spi, uint8_t data){
     //Wait for the SPI 1 Status Register Transmit is empty
-	spi_sd_select();
-		my_printf("Transferring data %d\r\n", data);
-    while((SPI_SR(SPI1)&SPI_SR_TXE)!= SPI_SR_TXE){
+		/*my_printf("Transferring data %d\r\n", data);*/
+    while((SPI_SR(spi)&SPI_SR_TXE)!= SPI_SR_TXE){
     }
 
-    SPI1_DR=data;
+		SPI_DR(spi)=data;
 
     //Wait until data returned from the peripheral
-    while(!(SPI_SR(SPI1)&SPI_SR_RXNE)){
+    while(!(SPI_SR(spi)&SPI_SR_RXNE)){
     }
-		spi_sd_deselect();
-    return SPI1_DR;
+    return SPI_DR(spi);
 }
 
 void spi_sd_select(void){
-	my_printf("selecting sd\r\n");
     gpio_clear(GPIOA, GPIO4);
 }
 
 void spi_sd_deselect(void){
-	my_printf("deselecting sd\r\n");
     gpio_set(GPIOA, GPIO4);
 }
 
-uint8_t spi_sd_read(void){
+uint8_t spi_sd_read(uint32_t spi){
     uint8_t rb;
-    rb=spi_sd_transfer(0x00);
+    rb=spi_sd_transfer(spi,0x00);
     return rb;
 }
 
-void spi_sd_write(uint8_t wb){
-    spi_sd_transfer(wb);
+void spi_sd_write(uint32_t spi, uint8_t wb){
+    spi_sd_transfer(spi, wb);
 }
 
-void spi_sd_readburst(uint8_t* pBuf, uint16_t len){
+void spi_sd_readburst(uint32_t spi, uint8_t* pBuf, uint16_t len){
     for(uint16_t i=0; i<len; i++){
-        pBuf[i] = spi_sd_transfer(0x00);
+        pBuf[i] = spi_sd_transfer(spi, 0x00);
     }
 }
 
-void spi_sd_writeburst(uint8_t* pBuf, uint16_t len){
+void spi_sd_writeburst(uint32_t spi, uint8_t* pBuf, uint16_t len){
     for(uint16_t i=0; i<len; i++){
-        spi_sd_transfer(pBuf[i]);
+        spi_sd_transfer(spi, pBuf[i]);
     }
 }
 
@@ -67,7 +63,7 @@ void spi1_setup(void){
 	rcc_periph_reset_pulse(RST_SPI1);
 
 	// Configure SPI1 parameters
-	spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_256,
+	spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_64,
 									SPI_CR1_CPOL_CLK_TO_1_WHEN_IDLE,
 									SPI_CR1_CPHA_CLK_TRANSITION_2,
 									SPI_CR1_DFF_8BIT,
@@ -78,4 +74,5 @@ void spi1_setup(void){
 	// Enable SPI1
 	spi_enable(SPI1);
 
+	my_printf("SPI set up\r\n");
 }

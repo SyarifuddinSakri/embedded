@@ -7,13 +7,14 @@
 #ifndef SDCARD
 #define SDCARD
 #include "stdint.h"
+#include "spi.h"
 
 #define SDSPI SPI1
-#define SDCS  GPIO0
+#define SDCS  GPIO4
 #define SDPORT GPIOA
-#define SDCS_UP() gpio_set(SDPORT, SDCS);
-#define SDCS_DOWN() gpio_clear(SDPORT, SDCS);
-#define SDTR(data) spi_xfer(SDPORT, (data));
+#define SDCS_UP() spi_sd_deselect();
+#define SDCS_DOWN() spi_sd_select();
+#define SDTR(data) spi_sd_transfer(SDSPI, (data));
 #define WSPI() while(SPI_SR(SDSPI) & SPI_SR_BSY);
 
 

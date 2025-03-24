@@ -4,6 +4,7 @@
 #include <libopencm3/stm32/spi.h>
 #include <stdint.h>
 #include "FreeRTOS.h"
+#include "portmacro.h"
 #include "projdefs.h"
 #include "task.h"
 #include "spi_w5500.h"
@@ -45,7 +46,7 @@ int main(void) {
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask __attribute((unused)), char *pcTaskName){
 				my_printf("Stack overflow in task %s\n", pcTaskName);
-				uint32_t remain = uxTaskGetStackHighWaterMark(httpServerHandle);
+				UBaseType_t remain = uxTaskGetStackHighWaterMark(httpServerHandle);
 				my_printf("ramaining stack in http %d\n", remain);
 				while(1); //Halt or reset
 }

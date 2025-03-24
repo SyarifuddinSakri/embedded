@@ -10,6 +10,8 @@
 #include "ff.h"			/* Obtains integer types */
 #include "diskio.h"		/* Declarations of disk functions */
 #include "sdcard.h"
+#include "log.h"
+#include "spi.h"
 
 
 
@@ -27,7 +29,15 @@ DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
-	return 0;
+    my_printf("Checking disk status for pdrv=%d\r\n", pdrv);
+
+    if (pdrv == DEV_MMC) {
+        my_printf("Returning disk status OK\r\n");
+        return 0;  // SD card is available
+    }
+
+    my_printf("Invalid drive number: %d\r\n", pdrv);
+    return STA_NOINIT;
 }
 
 
@@ -40,7 +50,19 @@ DSTATUS disk_initialize (
 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-	return 0;
+    my_printf("Initializing disk pdrv=%d\r\n", pdrv);
+
+    if (pdrv == DEV_MMC) {  // Ensure SD card (pdrv=1) is being used
+        if (sd_init()) {
+            my_printf("SD Init failed!\r\n");
+            return STA_NOINIT;
+        }
+        my_printf("SD Init successful!\r\n");
+        return 0; // Initialization OK
+    }
+    
+    my_printf("Invalid drive number: %d\r\n", pdrv);
+    return STA_NOINIT;
 }
 
 
@@ -55,16 +77,24 @@ DRESULT disk_read (
 	LBA_t sector,	/* Start sector in LBA */
 	UINT count		/* Number of sectors to read */
 )
-{	
-	//stprintf("d_r(pdrv=%d,sec=%d,cnt=%d\r\n",pdrv,sector,count);
-	while(count){
-		if (sd_read_block(buff,sector)) return RES_ERROR;
-		--count;
-		++sector;
-		buff+=512;
-	}
-	//stprintf("resOK\r\n");
-	return RES_OK;
+{
+	    my_printf("disk read pdrv=%d, sec=%d, cnt=%d\r\n", pdrv, sector, count);
+
+    if (pdrv != DEV_MMC) {
+        return RES_PARERR; // Invalid drive
+    }
+
+    while (count) {
+        if (sd_read_block(buff, sector) != 0) {  // Check for nonzero error return
+            return RES_ERROR;
+        }
+        --count;
+        ++sector;
+        buff += 512;
+    }
+
+    my_printf("Read successful\r\n");
+    return RES_OK;
 }
 
 
@@ -82,24 +112,22 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
-	//SDCS_UP();
-	//stprintf("d_w(pdrv=%d,sec=%d,cnt=%d\r\n",pdrv,sector,count);
-	//SDCS_DOWN();
-	uint8_t ret=0;
-	//if(count==1){
-		//ret=sd_write_block(buff,sector);
-		//stprintf("w_ret_code=%d",ret);
-		//if(ret==6) return RES_ERROR;
-	//} else return RES_ERROR;
-	
-	while(count){
-		if(sd_write_block(buff,sector)) return RES_ERROR;
-		--count;
-		++sector;
-		buff+=512;
-	}
-	//stprintf("WresOK\r\n");
-	return RES_OK;
+    my_printf("disk write pdrv=%d, sec=%lu, cnt=%d\r\n", pdrv, sector, count);
+
+    if (pdrv != DEV_MMC) {
+        return RES_PARERR; // Invalid drive
+    }
+
+    while (count) {
+        if (sd_write_block((uint8_t*)buff, sector) != 0) {  // Check return value
+            return RES_ERROR;
+        }
+        --count;
+        ++sector;
+        buff += 512;
+    }
+
+    return RES_OK;
 }
 #endif
 
@@ -114,12 +142,22 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	
-    if(cmd == GET_SECTOR_SIZE) {
-		 *(WORD*)buff = 512;
-		return RES_OK;
-	}
-	
-    return RES_OK;
+    if (pdrv != DEV_MMC) {
+        return RES_PARERR;
+    }
+
+    switch (cmd)
+    {
+        case GET_SECTOR_SIZE:
+            *(WORD*)buff = 512;
+            return RES_OK;
+        case CTRL_SYNC:
+            return RES_OK;  // If no pending writes
+        case GET_BLOCK_SIZE:
+            *(DWORD*)buff = 8;  // Typically, SD block size is 512 bytes, but adjust if needed
+            return RES_OK;
+        default:
+            return RES_PARERR;
+    }
 }
 

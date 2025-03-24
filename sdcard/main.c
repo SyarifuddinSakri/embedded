@@ -2,9 +2,9 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/usart.h>
-#include <stdint.h>
-#include "ff.h"
 #include "libopencm3/stm32/f1/gpio.h"
+#include "ff.h"
+#include "diskio.h"
 #include "log.h"
 #include "spi.h"
 
@@ -15,24 +15,21 @@ void gpio_init(void);
 int main(void){
 	clock_setup();
 	uart_setup();
-	spi1_setup();
 	gpio_init();
+	spi1_setup();
 
-	uint8_t buntut = spi_sd_transfer(23);
-	my_printf("This is spi return %d\r\n", buntut);
-
-FATFS FatFs;
+	FATFS FatFs;
 	FIL fil;
 	FRESULT fres;
 
+	my_printf("disk_status(1) -> %d\r\n",disk_status(1));
 	my_printf("mounting\r\n");
-	fres = f_mount(&FatFs, "", 1); //1=mount now
-	my_printf("passed mounting\r\n");
+	fres = f_mount(&FatFs, "1:", 1); //1=mount now
+	my_printf("Tried Mounting\r\n");
 	if(fres != FR_OK){
-		my_printf("Erorr bro %d\r\n", fres);
+		my_printf("Mounting Error, Code : %d\r\n", fres);
 	}
-
-	my_printf("End of prog\r\n");
+	my_printf("Finished mounting\r\n");
 
 	while (1) {
 		for (int i=0; i<1000000; i++) {
@@ -76,6 +73,6 @@ void uart_setup(void) {
 }
 
 void gpio_init(void){
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO4);
+	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO4);
 	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO13 | GPIO14);
 }
