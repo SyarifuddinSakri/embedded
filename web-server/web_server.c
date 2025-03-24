@@ -1,11 +1,11 @@
 
 #include "web_server.h"
 #include "FreeRTOS.h"
-#include <libopencm3/cm3/scb.h>
-#include <libopencm3/stm32/iwdg.h>
 #include <stdint.h>
 #include <string.h>
+#include "portmacro.h"
 #include "task.h"
+#include "semphr.h"
 #include "socket.h"
 #include "log.h"
 #include "w5500.h"
@@ -13,6 +13,8 @@
 #define PORT 80
 #define BUFFER_SIZE 512
 #define SOCKET_NUMBER 0
+
+extern SemaphoreHandle_t w5500_mutex;
 
 const char http_404[] =
   "HTTP/1.1 404 Not Found\r\n"
@@ -32,15 +34,22 @@ const char http_index[] =
   "<body>"
   "<h1>Makan nasi bro</h1>"
   "<p>This is a simple embedded web server.</p>"
+  "<script>"
+  "  let ws = new WebSocket('ws://192.168.132.3:8000');" // Connect to WebSocket server
+  "  ws.onopen = function() { console.log('WebSocket Connected!'); ws.send('Hello from browser'); };" // Send a message when connected
+  "  ws.onmessage = function(event) { console.log('Received:', event.data); };" // Log incoming messages
+  "  ws.onclose = function() { console.log('WebSocket Disconnected'); };" // Handle disconnection
+  "</script>"
+
   "</body>"
   "</html>";
-
 uint8_t rx_buffer[BUFFER_SIZE];
 
 void http_server_task(void* args __attribute((unused))) {
     int32_t data_size;
 
     for (;;) {
+		xSemaphoreTake(w5500_mutex, portMAX_DELAY);
         switch (getSn_SR(SOCKET_NUMBER)) {
             case SOCK_CLOSED:
                 socket(SOCKET_NUMBER, Sn_MR_TCP, PORT, 0);
@@ -75,6 +84,7 @@ void http_server_task(void* args __attribute((unused))) {
                 break;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(10));
+		xSemaphoreGive(w5500_mutex);
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }

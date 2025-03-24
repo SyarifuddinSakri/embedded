@@ -2,17 +2,19 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/spi.h>
-#include <stdint.h>
 #include "FreeRTOS.h"
 #include "portmacro.h"
 #include "projdefs.h"
 #include "task.h"
+#include "semphr.h"
 #include "spi_w5500.h"
 #include "wizchip_conf.h"
 #include "log.h"
 #include "web_server.h"
+#include "ws_server.h"
 
 TaskHandle_t httpServerHandle = NULL; // Task handle
+SemaphoreHandle_t w5500_mutex;
 
 void task1(void* args __attribute((unused)));
 void task2(void* args __attribute((unused)));
@@ -20,6 +22,7 @@ void uart_setup(void);
 void spi1_setup(void);
 void gpio_setup(void);
 void clock_setup(void);
+void app_init(void);
 wiz_NetInfo default_net_info = {
     .ip = {192,168,132,3},
     .sn = {255,255,255,0},
@@ -36,9 +39,11 @@ int main(void) {
 	wizchip_setnetinfo(&default_net_info);
 	wizchip_setnetmode(NM_FORCEARP | NM_WAKEONLAN);
 
-	xTaskCreate(task1, "LED1", 32, NULL, 1, NULL);
-	xTaskCreate(task2, "LED2", 32, NULL, 1, NULL);
-	xTaskCreate(http_server_task, "HTTP", 1024, NULL, 1, &httpServerHandle);
+	app_init();
+	xTaskCreate(task1, "LED1", 128, NULL, 1, NULL);
+	xTaskCreate(task2, "LED2", 128, NULL, 1, NULL);
+	/*xTaskCreate(http_server_task, "HTTP", 1024, NULL, 1, &httpServerHandle);*/
+	/*xTaskCreate(websocket_server, "WS", 1024, NULL, 1, NULL);*/
 
 	vTaskStartScheduler();
 
@@ -51,6 +56,18 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask __attribute((unused)), cha
 				while(1); //Halt or reset
 }
 
+void app_init(void) {
+    // Create the mutex
+    w5500_mutex = xSemaphoreCreateMutex();
+    
+    if (w5500_mutex == NULL) {
+        my_printf("Failed to create mutex!\n");
+        while (1);
+    }
+
+    xTaskCreate(http_server_task, "HTTP", 4096, NULL, 1, NULL);
+    xTaskCreate(websocket_server, "WS", 4096, NULL, 1, NULL);
+}
 
 void task1(void* args __attribute((unused))){
 
