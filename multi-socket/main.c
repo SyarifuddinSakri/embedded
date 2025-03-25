@@ -36,7 +36,7 @@ int main(void) {
 
 	xTaskCreate(task1, "LED1", 32, NULL, 1, NULL);
 	xTaskCreate(task2, "LED2", 32, NULL, 1, NULL);
-	xTaskCreate(open_socket1, "SOCK23", 1024, NULL, 1, NULL);
+	xTaskCreate(open_socket1, "SOCK23", 1024, NULL, 5, NULL);
 
 	vTaskStartScheduler();
 

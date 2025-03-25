@@ -14,12 +14,16 @@ W5500_CFILES = $(wildcard ../import/ioLibrary_Driver/Ethernet/*.c)
 LOG_DIR = ../import/log
 LOG_CFILES = ../import/log/log.c
 
+DIG_DIR = ../import/digest
+DIG_CFILES = $(wildcard ../import/digest/*.c)
 
-SHARED_DIR = ../import $(RTOS_DIR) $(W5500_DIR) $(LOG_DIR) \
+SHARED_DIR = ../import $(RTOS_DIR) $(W5500_DIR) $(LOG_DIR) $(DIG_DIR)\
 						 /usr/lib/gcc/arm-none-eabi/13.2.1/include \
-						 /usr/include
+						 /usr/include \
+						 /usr/include/mbedtls \
+						 /usr/bin
 CFILES = main.c
-CFILES += $(RTOS_CFILES) $(W5500_CFILES) $(LOG_CFILES) ./spi_w5500.c ./open_socket.c
+CFILES += $(RTOS_CFILES) $(W5500_CFILES) $(LOG_CFILES) $(DIG_CFILES) ./spi_w5500.c ./open_socket.c ./ws.c
 
 # TODO - you will need to edit these two lines!
 DEVICE=stm32f103c8
