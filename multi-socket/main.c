@@ -2,7 +2,6 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/spi.h>
-#include <stdint.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "spi_w5500.h"
@@ -36,7 +35,7 @@ int main(void) {
 
 	xTaskCreate(task1, "LED1", 32, NULL, 1, NULL);
 	xTaskCreate(task2, "LED2", 32, NULL, 1, NULL);
-	xTaskCreate(open_socket1, "SOCK23", 1024, NULL, 5, NULL);
+	xTaskCreate(open_socket1, "WS", 1024, NULL, 5, NULL);
 
 	vTaskStartScheduler();
 

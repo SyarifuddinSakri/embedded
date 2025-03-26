@@ -11,7 +11,7 @@
 
 #define SOCK_1  0
 #define SOCK_2  1
-#define SOCK_1_PORT 23
+#define SOCK_1_PORT 8000
 #define SOCK_2_PORT 24
 #define BUFF		1024
 
@@ -20,7 +20,7 @@ uint8_t tx1_buf[BUFF];
 uint8_t rx2_buf[BUFF];
 uint8_t tx2_buf[BUFF];
 
-char* greeting1 = "Hello from Websocket sever";
+char* greeting1 = "This is greeting from WebSocket server\r\n";
 char* greeting2 = "hello from port 24\r\n";
 void open_socket1(void* args __attribute((unused))){
 	for(;;){
@@ -35,7 +35,8 @@ void open_socket1(void* args __attribute((unused))){
 				recv(SOCK_1, rx1_buf, BUFF);
 				my_printf("This is data from client :\r\n %s",rx1_buf);
 				handle_websocket_handshake(SOCK_1, rx1_buf);
-				send_websocket_text(SOCK_1, greeting1);
+				send_text(SOCK_1, greeting1);
+				recv(SOCK_1, rx1_buf, BUFF);
 
 				disconnect(SOCK_1);
 				close(SOCK_1);
