@@ -2,20 +2,14 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/spi.h>
-#include <string.h>
 #include "FreeRTOS.h"
-#include "libopencm3/stm32/f1/gpio.h"
 #include "task.h"
-#include "semphr.h"
-#include "projdefs.h"
 #include "spi_w5500.h"
 #include "wizchip_conf.h"
 #include "log.h"
 #include "open_socket.h"
 
-//Task Handle name
-TaskHandle_t httpServerHandle = NULL;
-SemaphoreHandle_t mutex_w5500;
+TaskHandle_t httpServerHandle = NULL; // Task handle
 
 void task1(void* args __attribute((unused)));
 void task2(void* args __attribute((unused)));
@@ -35,30 +29,15 @@ int main(void) {
 	gpio_setup();
 	uart_setup();
 	spi1_setup();
-
-	mutex_w5500 = xSemaphoreCreateMutex();
-	if(mutex_w5500==NULL){
-		my_printf("Failed to create W5500 mutex\r\n");
-	}else {
-		my_printf("Created mutex for W5500\r\n");
-	}
-
 	W5500Init();
 	wizchip_setnetinfo(&default_net_info);
 	wizchip_setnetmode(NM_FORCEARP | NM_WAKEONLAN);
 
-
 	xTaskCreate(task1, "LED1", 32, NULL, 1, NULL);
 	xTaskCreate(task2, "LED2", 32, NULL, 1, NULL);
-	xTaskCreate(socket1_handle, "LISTEN", 1024, NULL, 5, NULL);
-	xTaskCreate(socket2_handle, "HANDLE_COM", 1024, NULL, 5, NULL);
+	xTaskCreate(open_socket1, "WS", 1024, NULL, 5, NULL);
 
 	vTaskStartScheduler();
-
-	for(;;){
-		 vTaskDelay(300);
-		gpio_toggle(GPIOC, GPIO13);
-	}
 
 }
 
