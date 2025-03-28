@@ -6,7 +6,6 @@
 #include "ff.h"
 #include "diskio.h"
 #include "log.h"
-#include "spi.h"
 
 void clock_setup(void);
 void uart_setup(void);
@@ -16,18 +15,17 @@ int main(void){
 	clock_setup();
 	uart_setup();
 	gpio_init();
-	spi1_setup();
 
 	FATFS FatFs;
 	FIL fil;
 	FRESULT fres;
 
-	my_printf("disk_status(1) -> %d\r\n",disk_status(1));
-	my_printf("mounting\r\n");
-	fres = f_mount(&FatFs, "1:", 1); //1=mount now
-	my_printf("Tried Mounting\r\n");
+	my_printf("Program init\r\n");
+	fres = f_mount(&FatFs, "0:", 1); //1=mount now
 	if(fres != FR_OK){
 		my_printf("Mounting Error, Code : %d\r\n", fres);
+	}else{
+		my_printf("Mounting success \r\n");
 	}
 	my_printf("Finished mounting\r\n");
 
@@ -74,5 +72,6 @@ void uart_setup(void) {
 
 void gpio_init(void){
 	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO4);
+	gpio_set(GPIOA, GPIO4);
 	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO13 | GPIO14);
 }

@@ -1,75 +1,49 @@
-#include <stdint.h>
+#include "ff.h"
 #include "diskio.h"
-#include "spi.h"
 #include "sd_spi.h"
-
-#define SD_CMD0  0x40  /* GO_IDLE_STATE */
-#define SD_CMD8  0x48  /* SEND_IF_COND */
-#define SD_CMD55 0x77  /* APP_CMD */
-#define SD_ACMD41 0x69 /* SD_SEND_OP_COND */
-#define SD_CMD58 0x7A  /* READ_OCR */
-#define DEV_MMC 1
-
-static void sd_spi_send_command(uint8_t cmd, uint32_t arg) {
-    spi_sd_transfer(cmd | 0x40);
-    spi_sd_transfer((arg >> 24) & 0xFF);
-    spi_sd_transfer((arg >> 16) & 0xFF);
-    spi_sd_transfer((arg >> 8) & 0xFF);
-    spi_sd_transfer(arg & 0xFF);
-    spi_sd_transfer(0x95); // Dummy CRC for CMD0
-}
+#include "log.h"
 
 DSTATUS disk_initialize(BYTE pdrv) {
-    if (pdrv != DEV_MMC) return STA_NOINIT;
-
-    spi1_setup();
-    spi_sd_deselect();
-    for (uint8_t i = 0; i < 10; i++) spi_sd_transfer(0xFF);
-    
-    spi_sd_select();
-    sd_spi_send_command(SD_CMD0, 0);
-    spi_sd_deselect();
-    spi_sd_transfer(0xFF);
-
-    return RES_OK;
-}
-
-DRESULT disk_read(BYTE pdrv, BYTE *buff, LBA_t sector, UINT count) {
-    if (pdrv != DEV_MMC) return RES_PARERR;
-
-    spi_sd_select();
-    sd_spi_send_command(0x51, sector * 512);
-    for (UINT i = 0; i < count * 512; i++) buff[i] = spi_sd_transfer(0xFF);
-    spi_sd_deselect();
-    
-    return RES_OK;
-}
-
-DRESULT disk_write(BYTE pdrv, const BYTE *buff, LBA_t sector, UINT count) {
-    if (pdrv != DEV_MMC) return RES_PARERR;
-
-    spi_sd_select();
-    sd_spi_send_command(0x58, sector * 512);
-    for (UINT i = 0; i < count * 512; i++) spi_sd_transfer(buff[i]);
-    spi_sd_deselect();
-
-    return RES_OK;
-}
-
-DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff) {
-    if (pdrv != DEV_MMC) return RES_PARERR;
-    
-    switch (cmd) {
-    case CTRL_SYNC:
-        return RES_OK;
-    case GET_SECTOR_COUNT:
-        *(DWORD *)buff = 1024; // Example size
-        return RES_OK;
-    }
-    return RES_PARERR;
+    return (sd_init() == 0) ? 0 : STA_NOINIT;
 }
 
 DSTATUS disk_status(BYTE pdrv) {
-    if (pdrv != DEV_MMC) return STA_NOINIT;
-    return 0;
+    return 0; // Assume OK
+}
+
+DRESULT disk_read(BYTE pdrv, BYTE *buff, LBA_t sector, UINT count) {
+    return (sd_read_sector(sector, buff, count) == 0) ? RES_OK : RES_ERROR;
+}
+
+DRESULT disk_write(BYTE pdrv, const BYTE *buff, LBA_t sector, UINT count) {
+    my_printf("Reading sector %lu\r\n", sector);
+    if (sd_read_sector(sector, buff, count) != 0) {
+        my_printf("Read failed!\r\n");
+        return RES_ERROR;  // This causes FR_DISK_ERR
+    }
+    return RES_OK;
+}
+DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff) {
+    switch (cmd) {
+        case CTRL_SYNC:
+            return RES_OK;
+            
+        case GET_SECTOR_SIZE:
+            *(WORD*)buff = 512;  // MUST be 512 for FatFs
+            return RES_OK;
+            
+        case GET_BLOCK_SIZE:
+            *(DWORD*)buff = 1;   // Erase block size in sectors
+            return RES_OK;
+            
+        case GET_SECTOR_COUNT: {
+            // For non-SDHC cards, you may need to read this from CSD
+            // Temporary workaround for testing:
+            *(DWORD*)buff = 0x100000; // 1GB card (adjust for your card)
+            return RES_OK;
+        }
+            
+        default:
+            return RES_PARERR;
+    }
 }

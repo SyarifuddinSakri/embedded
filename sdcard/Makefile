@@ -2,8 +2,8 @@ PROJECT = prog
 BUILD_DIR = bin
 
 # FatFS
-FAT_DIR = ../import/sdcard
-FAT_CFILES = $(wildcard ../import/sdcard/*.c)
+FAT_DIR = ../import/fatfs
+FAT_CFILES = $(wildcard ../import/fatfs/*.c)
 
 #Logging
 LOG_DIR = ../import/log
@@ -12,7 +12,7 @@ LOG_CFILES = ../import/log/log.c
 SHARED_DIR = ../import $(FAT_DIR) $(LOG_DIR)\
 						 /usr/lib/gcc/arm-none-eabi/13.2.1/include \
 						 /usr/include
-CFILES = main.c ./sdcard.c ./spi.c
+CFILES = main.c ./sd_spi.c
 CFILES += $(FAT_CFILES) $(LOG_CFILES)
 
 # TODO - you will need to edit these two lines!
