@@ -14,17 +14,18 @@ static uint8_t dec_to_bcd(uint8_t val) {
 
 // --- Write time to DS3231 ---
 void ds3231_set_time(struct rtc_time *t) {
-    uint8_t buf[7];
-    buf[0] = 0x00; // start at register 0x00
-    buf[1] = dec_to_bcd(t->seconds);
-    buf[2] = dec_to_bcd(t->minutes);
-    buf[3] = dec_to_bcd(t->hours);
-    buf[4] = dec_to_bcd(t->day);
-    buf[5] = dec_to_bcd(t->date);
-    buf[6] = dec_to_bcd(t->month);
-    buf[7] = dec_to_bcd(t->year);
+	uint8_t time_regs[7];
+	time_regs[0] = dec_to_bcd(t->seconds);
+	time_regs[1] = dec_to_bcd(t->minutes);
+	time_regs[2] = dec_to_bcd(t->hours);
+	time_regs[3] = dec_to_bcd(t->day);
+	time_regs[4] = dec_to_bcd(t->date);
+	time_regs[5] = dec_to_bcd(t->month);
+	time_regs[6] = dec_to_bcd(t->year);
 
-    i2c_transfer7(I2C1, DS3231_ADDR, buf, 8, NULL, 0);
+	uint8_t start_reg = 0x00;
+	i2c_transfer7(I2C1, DS3231_ADDR, &start_reg, 1, NULL, 0); // set pointer
+	i2c_transfer7(I2C1, DS3231_ADDR, time_regs, 7, NULL, 0);  // write values
 }
 
 // --- Read time from DS3231 ---
