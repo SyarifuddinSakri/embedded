@@ -50,7 +50,7 @@ int main(void) {
 
 	xTaskCreate(task1, "LED1", 32, NULL, 1, NULL);
 	xTaskCreate(task2, "LED2", 32, NULL, 1, NULL);
-	xTaskCreate(socket1_handle, "LISTEN", 1024, NULL, 5, NULL);
+	xTaskCreate(socket1_handle, "LISTEN", 2048, NULL, 5, NULL);
 	xTaskCreate(socket2_handle, "HANDLE_COM", 1024, NULL, 5, NULL);
 
 	vTaskStartScheduler();

@@ -22,6 +22,7 @@ uint8_t tx2_buf[BUFF];
 
 char* greeting1 = "This is greeting from WebSocket server\r\n";
 char* greeting2 = "hello from port 24\r\n";
+extern SemaphoreHandle_t mutex_w5500;
 void socket1_handle(void* args __attribute((unused))){
 	for(;;){
 			//Opening socket1 if it is closed
