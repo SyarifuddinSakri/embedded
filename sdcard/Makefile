@@ -1,19 +1,22 @@
 PROJECT = prog
 BUILD_DIR = bin
 
-# FatFS
-FAT_DIR = ../import/fatfs
-FAT_CFILES = $(wildcard ../import/fatfs/*.c)
-
-#Logging
 LOG_DIR = ../import/log
 LOG_CFILES = ../import/log/log.c
 
-SHARED_DIR = ../import $(FAT_DIR) $(LOG_DIR)\
+FAT_DIR = ./fatfs
+FAT_CFILES = $(wildcard ./fatfs/*.c)
+
+SOCK_DIR = ./spi
+SOCK_CFILES := $(wildcard ./spi/*.c)
+
+SHARED_DIR = ../import $(LOG_DIR) $(SOCK_DIR) $(FAT_DIR)\
 						 /usr/lib/gcc/arm-none-eabi/13.2.1/include \
-						 /usr/include
-CFILES = main.c ./sd_spi.c
-CFILES += $(FAT_CFILES) $(LOG_CFILES)
+						 /usr/include \
+						 /usr/bin \
+						 ./sockets
+CFILES = main.c
+CFILES += $(LOG_CFILES) $(SOCK_CFILES) $(FAT_CFILES)
 
 # TODO - you will need to edit these two lines!
 DEVICE=stm32f103c8

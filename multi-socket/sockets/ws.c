@@ -12,6 +12,9 @@ void handle_websocket_handshake(uint8_t socket_num, uint8_t *buffer) {
 				setSn_IR(socket_num, Sn_IR_CON);  // Clear connection flag
 		}
     char *key_start = strstr((char*)buffer, "Sec-WebSocket-Key: ") + 19;
+	/*	if(key_start==NULL){*/
+	/*	my_printf("Web Socket key not found\r\n");*/
+	/*}*/
     char *key_end = strstr(key_start, "\r\n");
     char key[64] = {0};
     strncpy(key, key_start, key_end - key_start);

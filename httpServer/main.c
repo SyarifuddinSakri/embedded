@@ -3,64 +3,36 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/spi.h>
 #include <string.h>
-#include "ff.h"
 #include "libopencm3/stm32/f1/gpio.h"
+#include "spi_w5500.h"
+#include "wizchip_conf.h"
 #include "log.h"
+#include "httpServer.h"
+#include "http_task.h"
 
 void clock_setup(void);
 void gpio_setup(void);
 void uart_setup(void);
 void spi1_setup(void);
-
-FATFS fs;       // File system object
-FIL file;       // File object
-FRESULT fr;     // FatFs function common result code
-UINT br;        // File read/write count
+wiz_NetInfo default_net_info = {
+    .ip = {192,168,132,3},
+    .sn = {255,255,255,0},
+    .gw = {192,168,132,1},
+    .mac = {0x00, 0x08, 0xdc, 0xab, 0xcd, 0xef}
+};
 
 int main(void) {
 	clock_setup();
 	gpio_setup();
 	uart_setup();
 	spi1_setup();
-    
-	my_printf("Try to mount\n");
-    // Mount the filesystem
-    fr = f_mount(&fs, "", 1);
-	my_printf("After trying mount\n");
-    if (fr != FR_OK) {
-        my_printf("Failed to mount filesystem. Error: %d\n", fr);
-        return 1;
-    }
-    my_printf("Filesystem mounted successfully.\n");
 
-    /*// Open a file for reading*/
-    /*fr = f_open(&file, "test.txt", FA_READ);*/
-    /*if (fr != FR_OK) {*/
-    /*    my_printf("Failed to open file. Error: %d\n", fr);*/
-    /*    return 1;*/
-    /*}*/
-    /*my_printf("File opened successfully.\n");*/
+	W5500Init();
+	wizchip_setnetinfo(&default_net_info);
+	wizchip_setnetmode(NM_FORCEARP | NM_WAKEONLAN);
+	taskhttp();
 
-    /*// Read file contents*/
-    /*char buffer[128];*/
-    /*fr = f_read(&file, buffer, sizeof(buffer)-1, &br);*/
-    /*if (fr != FR_OK) {*/
-    /*    my_printf("Failed to read file. Error: %d\n", fr);*/
-    /*    f_close(&file);*/
-    /*    return 1;*/
-    /*}*/
-    /**/
-    /*buffer[br] = '\0'; // Null-terminate string*/
-    /*my_printf("File contents:\n%s\n", buffer);*/
-    /**/
-    /*// Close the file*/
-    /*f_close(&file);*/
-    /**/
-    /*// Unmount the filesystem*/
-    /*f_mount(NULL, "", 1);*/
-    /**/
-    /*my_printf("Done.\n");*/
-
+	my_printf("Entering while loop\n");
 	while(1){
 		for(int i=0; i<10000000; i++){
 			__asm__("nop");

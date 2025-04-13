@@ -37,11 +37,6 @@ int main(void) {
 	spi1_setup();
 
 	mutex_w5500 = xSemaphoreCreateMutex();
-	if(mutex_w5500==NULL){
-		my_printf("Failed to create W5500 mutex\r\n");
-	}else {
-		my_printf("Created mutex for W5500\r\n");
-	}
 
 	W5500Init();
 	wizchip_setnetinfo(&default_net_info);
