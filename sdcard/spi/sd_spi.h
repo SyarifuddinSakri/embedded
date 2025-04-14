@@ -53,11 +53,11 @@
 //
 struct command_fields{
 	uint8_t start_bit;
-	uint8_t transmitter_bit;
+	uint8_t transmitter_bit; //start bit and transmitter bit will make up for '01'
 	uint8_t index;
 	uint32_t argument;
-	uint8_t end_bit;
 	uint8_t crc;
+	uint8_t end_bit;
 };
 #define SDCARD_FAIL     0
 #define SDCARD_V1       1

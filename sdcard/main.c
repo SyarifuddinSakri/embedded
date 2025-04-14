@@ -23,15 +23,15 @@ int main(void) {
 	uart_setup();
 	spi1_setup();
     
-	my_printf("Try to mount\n");
+	my_printf("Start prog -----------------------------------------------------------------\n");
     // Mount the filesystem
-	/*   fr = f_mount(&fs, "", 1);*/
-	/*my_printf("After trying mount\n");*/
-	/*   if (fr != FR_OK) {*/
-	/*       my_printf("Failed to mount filesystem. Error: %d\n", fr);*/
-	/*       return 1;*/
-	/*   }*/
+	   fr = f_mount(&fs, "", 1);
+	   if (fr != FR_OK) {
+	       my_printf("Failed to mount filesystem. Error: %d\n", fr);
+	       return 1;
+	   }else{
     my_printf("Filesystem mounted successfully.\n");
+		}
 
     /*// Open a file for reading*/
     /*fr = f_open(&file, "test.txt", FA_READ);*/
@@ -122,9 +122,9 @@ void spi1_setup(void){
     rcc_periph_reset_pulse(RST_SPI1);
 
     // Configure SPI1 parameters
-    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_64,
-                    SPI_CR1_CPOL_CLK_TO_1_WHEN_IDLE,
-                    SPI_CR1_CPHA_CLK_TRANSITION_2,
+    spi_init_master(SPI1, SPI_CR1_BAUDRATE_FPCLK_DIV_256,
+                    SPI_CR1_CPOL_CLK_TO_0_WHEN_IDLE,
+                    SPI_CR1_CPHA_CLK_TRANSITION_1,
                     SPI_CR1_DFF_8BIT,
                     SPI_CR1_MSBFIRST);
 

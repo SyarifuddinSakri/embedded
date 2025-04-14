@@ -2,20 +2,17 @@
 #include <libopencm3/stm32/gpio.h>
 #include <stdint.h>
 #include "sd_spi.h"
-#include "diskio.h"
 #include "ff.h"
 #include "log.h"
 
 uint8_t SPIReadWrite(uint8_t data){
     //Wait for the SPI 1 Status Register Transmit is empty
-    while((SPI_SR(SPI1)&SPI_SR_TXE)!= SPI_SR_TXE){
-    }
+    while((SPI_SR(SPI1)&SPI_SR_TXE)!= SPI_SR_TXE);
 
     SPI1_DR=data;
 
     //Wait until data returned from the peripheral
-    while(!(SPI_SR(SPI1)&SPI_SR_RXNE)){
-    }
+    while(!(SPI_SR(SPI1)&SPI_SR_RXNE));
     return SPI1_DR;
 }
 
@@ -52,10 +49,12 @@ void sd_writeburst(uint8_t* pBuf, uint16_t len){
 uint8_t SD_CARD_InitialiseCard(void){
 	UINT i = 0;
 
+	//CS High and sending the 80 clocks(10 x 0xFF bytes)
 	sd_deselect();
-	for(i=0; i<0xFFFF; i++)
+	for(i=0; i<0x10; i++)
 		sd_write(0xFF);
 
+	//Small delay
 	for(i=0; i<0xFFFF; i++);
 
 	while(SD_CARD_Cmd(CMD0, 0) != R1_IDLE_STATE);//GO_IDLE_STAT: Reset the card
@@ -74,7 +73,7 @@ uint8_t SD_CARD_InitialiseCardV1(void){
     uint8_t cmd;
     UINT i = 0;
 
-    if(SD_CARD_Cmd(ACMD41, 0x40040000) <= 1) //ACMD41 - set to 3V, use 0x40200000 for 3V3
+    if(SD_CARD_Cmd(ACMD41, 0x40000000) <= 1) //ACMD41 - set to 3V, use 0x40000000 for 3V3
         cmd = ACMD41;
     else
         cmd = CMD1;
@@ -99,24 +98,30 @@ uint8_t SD_CARD_InitialiseCardV1(void){
     return SDCARD_FAIL;	
 }
 uint8_t SD_CARD_InitialiseCardV2(void){
+	my_printf("version2 selected\n");
     UINT i = 0;
     UINT j = 0;
 
-    for(i = 0;i < SD_COMMAND_TIMEOUT;i++)
-    {
+	//To initialize the card up to SD_COMMAND_TIMEOUT times
+    for(i = 0;i < SD_COMMAND_TIMEOUT;i++) {
+				//small delay
         for(j = 0;j < 0xFF;j++);
-        if(SD_CARD_Cmd(ACMD41, 0x40040000) == 0) //ACMD41 - set to 3V, use 0x40200000 for 3V3
+
+        if(SD_CARD_Cmd(ACMD41, 0x40000000) == 0) //ACMD41 - set to 3V, use 0x40000000 for 3V3
         {
+						my_printf("Card not ready\n");
             uint32_t ocr = SD_CARD_Cmd(CMD58, 0); //CMD58
             return (ocr & 0x40000000) ? SDCARD_V2 | SDCARD_BLOCK : SDCARD_V2;
         }
     }
 
     //Timed out waiting for v2.x card
+		my_printf("Timeout Failed\n");
     return SDCARD_FAIL;
 }
 
 uint32_t SD_CARD_Cmd(UINT cmd, UINT arg) {
+	my_printf("Sending Cmd : %d\n",cmd);
     struct command_fields com;
     com.start_bit = 0;
     com.transmitter_bit = 1;
@@ -128,11 +133,30 @@ uint32_t SD_CARD_Cmd(UINT cmd, UINT arg) {
         com.crc = 0x43;
     else
         com.crc = 0x7F;
+
     com.end_bit = 1;
 
-    if(cmd == ACMD13 || cmd == ACMD23 || cmd == ACMD41) //ACMDx
-        SD_CARD_Cmd(CMD55, 0); //CMD55
 
+		if(cmd == ACMD13 || cmd == ACMD23 || cmd == ACMD41) {
+		my_printf("CMD is 13,23 or 41 prced to 55\n");
+				uint8_t r1 = SD_CARD_Cmd(CMD55, 0);
+
+					switch (r1) {
+						case 0:
+								my_printf("r1 is 0. Ready\n");
+								break;
+						case 1:
+								my_printf("r1 is 1. Idle\n");
+								break;
+						default:
+								my_printf("r1 Error %d\n",r1);
+								break;
+					}
+
+				if (r1 > 0x01){
+						return r1;
+				} // 0x00 = ready, 0x01 = idle — anything else is error
+		}
     SD_CARD_WriteCom(&com);
 
     if(cmd == CMD8)
