@@ -25,12 +25,12 @@ int main(void) {
     
 	my_printf("Try to mount\n");
     // Mount the filesystem
-    fr = f_mount(&fs, "", 1);
-	my_printf("After trying mount\n");
-    if (fr != FR_OK) {
-        my_printf("Failed to mount filesystem. Error: %d\n", fr);
-        return 1;
-    }
+	/*   fr = f_mount(&fs, "", 1);*/
+	/*my_printf("After trying mount\n");*/
+	/*   if (fr != FR_OK) {*/
+	/*       my_printf("Failed to mount filesystem. Error: %d\n", fr);*/
+	/*       return 1;*/
+	/*   }*/
     my_printf("Filesystem mounted successfully.\n");
 
     /*// Open a file for reading*/
