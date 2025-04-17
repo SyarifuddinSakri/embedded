@@ -60,28 +60,64 @@ void uart_send_hex(uint32_t num) {
 void my_printf(const char *format, ...) {
     va_list args;
     va_start(args, format);
-    
+
     while (*format) {
         if (*format == '%') {
             format++;  // Move to format specifier
+            int width = 0;
+
+            // Check for zero-padding width like %02X
+            if (*format == '0') {
+                format++;
+                if (*format >= '0' && *format <= '9') {
+                    width = *format - '0';
+                    format++;
+                }
+            }
+
             switch (*format) {
-                case 'd':  // Integer
+                case 'd':
                     uart_send_int(va_arg(args, int));
                     break;
-                case 's':  // String
+                case 's':
                     uart_send_string(va_arg(args, char *));
                     break;
-                case 'c':  // Character
+                case 'c':
                     uart_send_char((char)va_arg(args, int));
                     break;
-                case 'p':  // Pointer (Hex Address)
+                case 'p':
                     uart_send_hex((uintptr_t)va_arg(args, void *));
                     break;
-                case '%':  // Literal '%'
+                case 'x':
+                case 'X': {
+                    int val = va_arg(args, int);
+                    char buf[9]; // Enough for 32-bit hex
+                    int uppercase = (*format == 'X') ? 1 : 0;
+
+                    // Convert to hex string
+                    int i = 0;
+                    do {
+                        int digit = val & 0xF;
+                        if (digit < 10)
+                            buf[i++] = '0' + digit;
+                        else
+                            buf[i++] = (uppercase ? 'A' : 'a') + (digit - 10);
+                        val >>= 4;
+                    } while (val && i < 8);
+
+                    // Zero padding if requested
+                    while (i < width) buf[i++] = '0';
+
+                    // Send hex string in reverse
+                    while (i--)
+                        uart_send_char(buf[i]);
+                    break;
+                }
+                case '%':
                     uart_send_char('%');
                     break;
                 default:
-                    uart_send_char('?');  // Unknown format
+                    uart_send_char('?');
                     break;
             }
         } else {
@@ -89,6 +125,6 @@ void my_printf(const char *format, ...) {
         }
         format++;
     }
-    
+
     va_end(args);
 }

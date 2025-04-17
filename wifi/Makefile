@@ -1,0 +1,26 @@
+PROJECT = prog
+BUILD_DIR = bin
+
+LOG_DIR = ../import/log
+LOG_CFILES = ../import/log/log.c
+
+SHARED_DIR = ../import $(LOG_DIR) \
+						 /usr/lib/gcc/arm-none-eabi/13.2.1/include \
+						 /usr/include \
+						 /usr/bin 
+
+CFILES = main.c
+CFILES += $(LOG_CFILES)
+
+# TODO - you will need to edit these two lines!
+DEVICE=stm32f103c8
+OOCD_FILE = board/stm32f1discovery.cfg
+
+# You shouldn't have to edit anything below here.
+VPATH += $(SHARED_DIR)
+INCLUDES += $(patsubst %,-I%, . $(SHARED_DIR))
+OPENCM3_DIR=../libopencm3
+
+include $(OPENCM3_DIR)/mk/genlink-config.mk
+include ../rules.mk
+include $(OPENCM3_DIR)/mk/genlink-rules.mk
