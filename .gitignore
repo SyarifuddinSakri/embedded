@@ -8,4 +8,4 @@ generated.*.ld
 libopencm3/
 .cache/
 import/FreeRTOS-Kernel/
-compile_command.json
+**/compile_command.json

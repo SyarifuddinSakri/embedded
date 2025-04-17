@@ -2,6 +2,8 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/spi.h>
+#include "esp8266.h"
+#include "libopencm3/stm32/f1/gpio.h"
 #include "log.h"
 
 void clock_setup(void);
@@ -14,10 +16,12 @@ int main(void) {
 	clock_setup();
 	gpio_setup();
 	uart1_setup();
+	uart2_setup();
 	spi1_setup();
-    
-	my_printf("Start prog -----------------------------------------------------------------\n");
-    // Mount the filesystem
+
+	my_printf("Program Start\r\n");
+	/*esp_send_string("AT\r\n");*/
+	esp8266_connect();
 	while(1){
 		for(int i=0; i<10000000; i++){
 			__asm__("nop");
@@ -32,6 +36,7 @@ void clock_setup(void){
 	// Enable clock for GPIOA (USART1 and SPI1)
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_USART1);
+	rcc_periph_clock_enable(RCC_USART2);
 	rcc_periph_clock_enable(RCC_SPI1);
 
 }
@@ -65,13 +70,13 @@ void uart1_setup(void) {
     usart_enable(USART1);
 }
 void uart2_setup(void) {
-    // Configure TX (PB10) as alternate function push-pull
-    gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ,
-                  GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO10);
+    // Configure TX (PA02) as alternate function push-pull
+    gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
+                  GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_USART2_TX);
 
-    // Configure RX (PB11) as input floating
+    // Configure RX (PA03) as input floating
     gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
-                  GPIO_CNF_INPUT_FLOAT, GPIO11);
+                  GPIO_CNF_INPUT_FLOAT, GPIO_USART2_RX);
 
     // Set up USART2 parameters
     usart_set_baudrate(USART2, 115200);
@@ -81,7 +86,7 @@ void uart2_setup(void) {
     usart_set_parity(USART2, USART_PARITY_NONE);
     usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
 
-    // Enable USAR2T
+    // Enable USART2
     usart_enable(USART2);
 }
 void spi1_setup(void){
