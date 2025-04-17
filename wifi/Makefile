@@ -4,13 +4,16 @@ BUILD_DIR = bin
 LOG_DIR = ../import/log
 LOG_CFILES = ../import/log/log.c
 
-SHARED_DIR = ../import $(LOG_DIR) \
+ESP_DIR = ./esp8266
+ESP_CFILES = $(wildcard ./esp8266/*.c)
+
+SHARED_DIR = ../import $(LOG_DIR) $(ESP_DIR) \
 						 /usr/lib/gcc/arm-none-eabi/13.2.1/include \
 						 /usr/include \
 						 /usr/bin 
 
 CFILES = main.c
-CFILES += $(LOG_CFILES)
+CFILES += $(LOG_CFILES) $(ESP_CFILES)
 
 # TODO - you will need to edit these two lines!
 DEVICE=stm32f103c8
