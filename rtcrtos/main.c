@@ -1,0 +1,135 @@
+#include "libopencm3/stm32/f1/nvic.h"
+#include "libopencm3/stm32/f1/rcc.h"
+#include "libopencm3/stm32/f1/rtc.h"
+#include <libopencm3/cm3/nvic.h>
+#include <libopencm3/cm3/cortex.h>
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/pwr.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/usart.h>
+#include <stdbool.h>
+#include "FreeRTOS.h"
+#include "portmacro.h"
+#include "projdefs.h"
+#include "task.h"
+#include "semphr.h"
+#include "log.h"
+
+static TaskHandle_t h_task1, h_task2 = NULL;
+static SemaphoreHandle_t h_mutex;
+static void uart_setup(void);
+static void rtc_setup(void);
+
+static void mutex_lock(void) {
+	xSemaphoreTake(h_mutex,portMAX_DELAY); //Take and lock h_mutex
+}
+
+static void mutex_unlock(void) {
+	xSemaphoreGive(h_mutex); //release and give h_mutex
+}
+
+static void task1(void* args __attribute__((unused))){
+	for(;;){
+		//Block execution until notified
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		mutex_lock();
+		gpio_toggle(GPIOC, GPIO13);
+		mutex_unlock();
+		vTaskDelay(300);
+	}
+}
+
+static void task2(void* args __attribute__((unused))){
+	for(;;){
+		//Block execution until notified
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		mutex_lock();
+		gpio_toggle(GPIOC, GPIO14);
+		mutex_unlock();
+		vTaskDelay(300);
+	}
+}
+
+void rtc_isr(void){
+	UBaseType_t intstatus;
+	BaseType_t woken = pdFALSE;
+
+	if(rtc_check_flag(RTC_SEC)){
+		rtc_clear_flag(RTC_SEC);
+		my_printf("RtcISR function called\n");
+
+		intstatus = taskENTER_CRITICAL_FROM_ISR();
+
+		taskEXIT_CRITICAL_FROM_ISR(intstatus);
+
+		//Wake task1 if we can
+		vTaskNotifyGiveFromISR(h_task1, &woken);
+		portYIELD_FROM_ISR(woken);
+	}
+}
+
+int main(void){
+	rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+	rtc_setup();
+	uart_setup();
+	rcc_periph_clock_enable(RCC_GPIOC);
+	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO13);
+	gpio_set_mode(GPIOC,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,GPIO14);
+	gpio_clear(GPIOC, GPIO13);
+	gpio_clear(GPIOC, GPIO14);
+	
+	xTaskCreate(task1, "Task1", 400, NULL, 3, &h_task1);
+	xTaskCreate(task2, "Task2", 400, NULL, 3, &h_task2);
+
+	vTaskStartScheduler();
+
+	for(;;){
+
+	}
+}
+static void uart_setup(void) {
+    // Enable clock for USART1 and GPIOA
+    rcc_periph_clock_enable(RCC_USART1);
+    rcc_periph_clock_enable(RCC_GPIOA);
+
+    // Configure TX (PA9) as alternate function push-pull
+    gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
+                  GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO9);
+
+    // Configure RX (PA10) as input floating
+    gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
+                  GPIO_CNF_INPUT_FLOAT, GPIO10);
+
+    // Set up USART1 parameters
+    usart_set_baudrate(USART1, 115200);
+    usart_set_databits(USART1, 8);
+    usart_set_stopbits(USART1, USART_STOPBITS_1);
+    usart_set_mode(USART1, USART_MODE_TX_RX);
+    usart_set_parity(USART1, USART_PARITY_NONE);
+    usart_set_flow_control(USART1, USART_FLOWCONTROL_NONE);
+
+    // Enable USART1
+    usart_enable(USART1);
+}
+static void rtc_setup(void){
+	rcc_enable_rtc_clock();
+	rtc_interrupt_disable(RTC_SEC);
+	rtc_interrupt_disable(RTC_ALR);
+	rtc_interrupt_disable(RTC_OW);
+
+	rtc_awake_from_off(RCC_HSE);
+	rtc_set_prescale_val(62500);
+	rtc_set_counter_val(0xFFFFFFF0);
+
+	nvic_enable_irq(NVIC_RTC_IRQ);
+
+	cm_disable_interrupts();
+	rtc_clear_flag(RTC_SEC);
+	rtc_clear_flag(RTC_ALR);
+	rtc_clear_flag(RTC_OW);
+
+	rtc_interrupt_enable(RTC_SEC);
+	rtc_interrupt_enable(RTC_ALR);
+	rtc_interrupt_enable(RTC_OW);
+	cm_enable_interrupts();
+}

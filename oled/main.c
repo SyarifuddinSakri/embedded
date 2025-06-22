@@ -26,7 +26,7 @@ int main(void){
     /*draw_stylish_number(40, 120, '9', 0x002F, 0x0670, 3);  // Red number with black shadow*/
     /*draw_line(0, 0, 100, 90, 0x002F);*/
     /*draw_line_width(0, 0, 90, 100, 0x004F, 3);*/
-    draw_stylish_text(30, 120, "DONUT",0x7e5e, 0xFF50, 2);
+    draw_stylish_text(30, 120, "DONUT", 0xe9e2, 0xFF50, 2);
     set_rotation(1);
     print_donut();
     delay(100);

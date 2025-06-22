@@ -2,12 +2,41 @@
 #include <libopencm3/stm32/usart.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <string.h>
+#include <sys/types.h>
 #include "log.h"
+#include "libopencm3/stm32/f1/usart.h"
 
 void uart_send_char(char c) {
     usart_send_blocking(USART1, c);
 }
 
+char uart_read_char(void) {
+    // Wait until data is received
+    while (!(USART_SR(USART1) & USART_SR_RXNE));
+    return usart_recv(USART1);
+}
+
+
+void uart_read_line(char* line_buf, uint32_t len){
+	memset(line_buf, 0, len);
+    uint32_t i = 0;
+    while (1) {
+        char c = uart_read_char();
+
+        if (c == '\n' || c == '\r') {
+            line_buf[i] = '\0'; // Null-terminate
+            break;
+        }
+
+        if (i < len - 1) {
+            line_buf[i++] = c;
+        } else {
+            // Optional: handle overflow
+            break;
+        }
+    }
+}
 void uart_send_string(const char *str) {
     while (*str) {
         uart_send_char(*str++);
@@ -121,6 +150,9 @@ void my_printf(const char *format, ...) {
                     break;
             }
         } else {
+						if(*format == '\n'){
+							uart_send_char('\r');
+						}
             uart_send_char(*format);
         }
         format++;
